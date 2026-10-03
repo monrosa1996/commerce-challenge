@@ -1,0 +1,71 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 520" font-family="Arial, Helvetica, sans-serif" role="img" aria-label="Arquitectura de componentes">
+  <defs>
+    <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#475467"/></marker>
+  </defs>
+  <rect width="1000" height="520" fill="#ffffff"/>
+  <text x="500" y="34" text-anchor="middle" font-size="20" font-weight="bold" fill="#101828">Arquitectura de componentes</text>
+
+  <rect x="30" y="200" width="140" height="100" rx="10" fill="#f2f4f7" stroke="#98a2b3"/>
+  <text x="100" y="246" text-anchor="middle" font-size="15" font-weight="bold" fill="#101828">Navegador</text>
+  <text x="100" y="268" text-anchor="middle" font-size="12" fill="#475467">Usuario de negocio</text>
+
+  <rect x="215" y="150" width="210" height="200" rx="10" fill="#eff8ff" stroke="#2e90fa"/>
+  <text x="320" y="180" text-anchor="middle" font-size="15" font-weight="bold" fill="#175cd3">Front end Angular</text>
+  <text x="320" y="208" text-anchor="middle" font-size="12" fill="#344054">Login · Carga · Registros</text>
+  <text x="320" y="226" text-anchor="middle" font-size="12" fill="#344054">Cuarentena</text>
+  <text x="320" y="252" text-anchor="middle" font-size="12" fill="#344054">Validación local del CSV</text>
+  <text x="320" y="278" text-anchor="middle" font-size="12" fill="#344054">Sesión JWT en la pestaña</text>
+  <text x="320" y="304" text-anchor="middle" font-size="12" fill="#344054">Aviso y cierre al salir</text>
+  <text x="320" y="338" text-anchor="middle" font-size="11" fill="#667085">puerto 4200</text>
+
+  <rect x="470" y="60" width="270" height="420" rx="10" fill="#f9fafb" stroke="#98a2b3"/>
+  <text x="605" y="86" text-anchor="middle" font-size="15" font-weight="bold" fill="#101828">API .NET 10 (puerto 5080)</text>
+
+  <rect x="490" y="104" width="230" height="110" rx="8" fill="#ecfdf3" stroke="#12b76a"/>
+  <text x="605" y="128" text-anchor="middle" font-size="13" font-weight="bold" fill="#067647">Commerce.Api</text>
+  <text x="605" y="150" text-anchor="middle" font-size="11" fill="#344054">Auth y Commerce controllers</text>
+  <text x="605" y="168" text-anchor="middle" font-size="11" fill="#344054">Autenticación JWT · CORS</text>
+  <text x="605" y="186" text-anchor="middle" font-size="11" fill="#344054">Filtro de errores y mensajes claros</text>
+  <text x="605" y="204" text-anchor="middle" font-size="11" fill="#344054">Todo exige sesión salvo login y health</text>
+
+  <rect x="490" y="228" width="230" height="110" rx="8" fill="#fffaeb" stroke="#f79009"/>
+  <text x="605" y="252" text-anchor="middle" font-size="13" font-weight="bold" fill="#b54708">Commerce.Application</text>
+  <text x="605" y="274" text-anchor="middle" font-size="11" fill="#344054">CsvFileValidator (reglas del archivo)</text>
+  <text x="605" y="292" text-anchor="middle" font-size="11" fill="#344054">CommerceService · AuthService</text>
+  <text x="605" y="310" text-anchor="middle" font-size="11" fill="#344054">AuditService · PasswordHasher</text>
+  <text x="605" y="328" text-anchor="middle" font-size="11" fill="#344054">Revocación de tokens</text>
+
+  <rect x="490" y="352" width="230" height="110" rx="8" fill="#f4f3ff" stroke="#7a5af8"/>
+  <text x="605" y="376" text-anchor="middle" font-size="13" font-weight="bold" fill="#5925dc">Commerce.Infrastructure</text>
+  <text x="605" y="398" text-anchor="middle" font-size="11" fill="#344054">Repositorios (Dapper)</text>
+  <text x="605" y="416" text-anchor="middle" font-size="11" fill="#344054">Comercios · Usuarios · Auditoría</text>
+  <text x="605" y="434" text-anchor="middle" font-size="11" fill="#344054">Parámetros tipados · TVP</text>
+  <text x="605" y="452" text-anchor="middle" font-size="11" fill="#344054">Solo llama procedimientos</text>
+
+  <path d="M605 214 V228" stroke="#475467" stroke-width="1.5" marker-end="url(#a)"/>
+  <path d="M605 338 V352" stroke="#475467" stroke-width="1.5" marker-end="url(#a)"/>
+
+  <rect x="785" y="110" width="190" height="330" rx="10" fill="#fef3f2" stroke="#f04438"/>
+  <text x="880" y="138" text-anchor="middle" font-size="15" font-weight="bold" fill="#b42318">SQL Server</text>
+  <text x="880" y="158" text-anchor="middle" font-size="12" fill="#344054">Base CommerceDb</text>
+  <text x="880" y="190" text-anchor="middle" font-size="12" font-weight="bold" fill="#344054">Tablas</text>
+  <text x="880" y="210" text-anchor="middle" font-size="12" fill="#344054">commerce</text>
+  <text x="880" y="228" text-anchor="middle" font-size="12" fill="#344054">commerce_quarantine</text>
+  <text x="880" y="246" text-anchor="middle" font-size="12" fill="#344054">app_user</text>
+  <text x="880" y="264" text-anchor="middle" font-size="12" fill="#344054">audit_log</text>
+  <text x="880" y="294" text-anchor="middle" font-size="12" font-weight="bold" fill="#344054">Lógica</text>
+  <text x="880" y="314" text-anchor="middle" font-size="11" fill="#344054">sp_create / sp_process_commerce</text>
+  <text x="880" y="332" text-anchor="middle" font-size="11" fill="#344054">sp_list_commerce(_quarantine)</text>
+  <text x="880" y="350" text-anchor="middle" font-size="11" fill="#344054">sp_auth_get_user · sp_audit_add</text>
+  <text x="880" y="368" text-anchor="middle" font-size="11" fill="#344054">fn_commerce_validation</text>
+  <text x="880" y="400" text-anchor="middle" font-size="10" fill="#667085">usuario commerce_app:</text>
+  <text x="880" y="414" text-anchor="middle" font-size="10" fill="#667085">solo EXECUTE</text>
+
+  <path d="M170 250 H215" stroke="#475467" stroke-width="1.5" marker-end="url(#a)"/>
+  <path d="M425 250 H470" stroke="#475467" stroke-width="1.5" marker-start="url(#a)" marker-end="url(#a)"/>
+  <text x="447" y="236" text-anchor="middle" font-size="10" fill="#475467">HTTP</text>
+  <text x="447" y="272" text-anchor="middle" font-size="10" fill="#475467">JSON</text>
+  <text x="447" y="290" text-anchor="middle" font-size="10" fill="#475467">+ JWT</text>
+  <path d="M740 407 H762 V275 H785" fill="none" stroke="#475467" stroke-width="1.5" marker-end="url(#a)"/>
+  <text x="762" y="430" text-anchor="middle" font-size="10" fill="#475467">EXEC + TVP</text>
+</svg>

@@ -1,0 +1,1372 @@
+{
+  "info": {
+    "_postman_id": "6c1c0f0e-5d57-4f43-9a0c-0b7a3f2a1c11",
+    "name": "Commerce API",
+    "description": "Colección de pruebas del API Commerce.\n\nAntes de empezar: levantar la base de datos y el API (`dotnet run --project backend/src/Commerce.Api`) y elegir el entorno 'Commerce local'.\n\n**Sesión:** todas las solicitudes, salvo el login y el health, necesitan el token. Ejecute primero `0. Sesión > 0.3 Iniciar sesión`: el script guarda el token en la variable `token` y el resto de la colección lo usa solo (autorización Bearer a nivel de colección). `0.5 Cerrar sesión` cierra la sesión y el token deja de servir: ejecútela al final.\n\nEn las solicitudes de carga, pulse el campo `file` y seleccione el archivo indicado de `backend/database/samples/`.\n\nLa carga guarda todos los registros en la tabla de registros. Procesar una fecha revisa el nombre y el número de cada registro y envía a cuarentena, con su motivo, los que no cumplen. Cada ingreso, salida, carga y procesado queda en la tabla `audit_log`.\n\nOrden sugerido sobre una base vacía: 0.1 → 0.2 → 0.3 → 1.2 → 1.4 → 2.1 → 3.x → 2.2 → resto → 0.5.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{token}}",
+        "type": "string"
+      }
+    ]
+  },
+  "variable": [
+    {
+      "key": "token",
+      "value": ""
+    }
+  ],
+  "item": [
+    {
+      "name": "0. Sesión",
+      "description": "POST /api/auth/login y POST /api/auth/logout",
+      "item": [
+        {
+          "name": "0.1 Sin sesión: el API pide iniciar sesión",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 401', function () { pm.response.to.have.status(401); });",
+                  "pm.test('Mensaje claro', function () { pm.expect(pm.response.json().detail).to.eql('Debe iniciar sesión para continuar.'); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/commerce",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "commerce"
+              ]
+            },
+            "description": "Sin el token, las consultas se rechazan.",
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "0.2 Contraseña incorrecta",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 401', function () { pm.response.to.have.status(401); });",
+                  "pm.test('Mensaje claro', function () { pm.expect(pm.response.json().detail).to.eql('Usuario o contraseña incorrectos.'); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "auth": {
+              "type": "noauth"
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{ \"username\": \"{{username}}\", \"password\": \"incorrecta\" }",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "login"
+              ]
+            },
+            "description": "Usuario o contraseña incorrectos. Queda registrado como LoginFailed en la auditoría."
+          },
+          "response": [
+            {
+              "name": "Respuesta",
+              "originalRequest": {
+                "method": "POST",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/api/auth/login",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "auth",
+                    "login"
+                  ]
+                }
+              },
+              "status": "Unauthorized",
+              "code": 401,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/problem+json"
+                }
+              ],
+              "body": "{\n  \"title\": \"No autorizado\",\n  \"status\": 401,\n  \"detail\": \"Usuario o contraseña incorrectos.\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "0.3 Iniciar sesión",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 200', function () { pm.response.to.have.status(200); });",
+                  "const body = pm.response.json();",
+                  "pm.collectionVariables.set('token', body.accessToken);",
+                  "pm.test('Trae el token', function () { pm.expect(body.accessToken).to.be.a('string').and.not.empty; });",
+                  "pm.test('Es el usuario', function () { pm.expect(body.username).to.eql(pm.environment.get('username')); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "auth": {
+              "type": "noauth"
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{ \"username\": \"{{username}}\", \"password\": \"{{password}}\" }",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "login"
+              ]
+            },
+            "description": "Devuelve el token. El script lo guarda en la variable `token`."
+          },
+          "response": [
+            {
+              "name": "Respuesta",
+              "originalRequest": {
+                "method": "POST",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/api/auth/login",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "auth",
+                    "login"
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"accessToken\": \"eyJhbGciOiJIUzI1NiIs...\",\n  \"expiresAt\": \"2026-10-03T07:48:28+00:00\",\n  \"username\": \"admin\",\n  \"displayName\": \"Administrador\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "0.4 Iniciar sesión sin datos",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 400', function () { pm.response.to.have.status(400); });",
+                  "pm.test('Mensaje claro', function () { pm.expect(pm.response.json().detail).to.eql('Ingrese usuario y contraseña.'); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "auth": {
+              "type": "noauth"
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{ \"username\": \"\", \"password\": \"\" }",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "login"
+              ]
+            },
+            "description": "Usuario y contraseña son obligatorios."
+          },
+          "response": []
+        },
+        {
+          "name": "0.5 Cerrar sesión (ejecutar al final)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 204', function () { pm.response.to.have.status(204); });",
+                  "pm.test('El token ya no sirve', function () { pm.collectionVariables.set('token', ''); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{ \"reason\": \"manual\" }",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/logout",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "logout"
+              ]
+            },
+            "description": "Cierra la sesión. El token deja de servir aunque no haya vencido, y queda registrado como Logout en la auditoría."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "1. Carga de archivos",
+      "description": "POST /api/commerce/files",
+      "item": [
+        {
+          "name": "1.1 Carga correcta: todo correcto",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 201', function () { pm.response.to.have.status(201); });",
+                  "const body = pm.response.json();",
+                  "pm.test('Cargó 10 registros', function () { pm.expect(body.insertedCount).to.eql(10); });",
+                  "pm.test('Sin advertencias', function () { pm.expect(body.warnings).to.be.empty; });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "file",
+                  "type": "file",
+                  "src": [],
+                  "description": "Seleccione commerce_21032024.csv de backend/database/samples/all-correct/"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/commerce/files",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "commerce",
+                "files"
+              ]
+            },
+            "description": "Archivo con 10 registros correctos. Al procesar la fecha 2024-03-21 no se envía ninguno a cuarentena."
+          },
+          "response": [
+            {
+              "name": "Respuesta",
+              "originalRequest": {
+                "method": "POST",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/api/commerce/files",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "commerce",
+                    "files"
+                  ]
+                }
+              },
+              "status": "Created",
+              "code": 201,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"sourceFile\": \"commerce_21032024.csv\",\n  \"insertedCount\": 10,\n  \"warnings\": []\n}"
+            }
+          ]
+        },
+        {
+          "name": "1.2 Carga correcta: archivo base (5 correctos y 5 con errores de negocio)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 201', function () { pm.response.to.have.status(201); });",
+                  "const body = pm.response.json();",
+                  "pm.test('Cargó 10 registros', function () { pm.expect(body.insertedCount).to.eql(10); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "file",
+                  "type": "file",
+                  "src": [],
+                  "description": "Seleccione commerce_15032024.csv de backend/database/samples/valid-comma/"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/commerce/files",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "commerce",
+                "files"
+              ]
+            },
+            "description": "Archivo base. Se guardan los 10 registros; los 5 con errores de negocio se apartan al procesar la fecha 2024-03-15."
+          },
+          "response": []
+        },
+        {
+          "name": "1.3 Carga correcta (punto y coma, fecha dd/MM/yyyy)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 201', function () { pm.response.to.have.status(201); });",
+                  "const body = pm.response.json();",
+                  "pm.test('Cargó 10 registros', function () { pm.expect(body.insertedCount).to.eql(10); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "file",
+                  "type": "file",
+                  "src": [],
+                  "description": "Seleccione commerce_16032024.csv de backend/database/samples/valid-semicolon/"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/commerce/files",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "commerce",
+                "files"
+              ]
+            },
+            "description": "Mismo contenido con ';' y fechas dd/MM/yyyy."
+          },
+          "response": []
+        },
+        {
+          "name": "1.4 Carga repetida (claves ya cargadas)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 409', function () { pm.response.to.have.status(409); });",
+                  "pm.test('Mensaje claro', function () { pm.expect(pm.response.json().detail).to.include('Hay registros que ya existen'); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "file",
+                  "type": "file",
+                  "src": [],
+                  "description": "Seleccione commerce_15032024.csv de backend/database/samples/valid-comma/"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/commerce/files",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "commerce",
+                "files"
+              ]
+            },
+            "description": "Volver a subir el archivo 1.2. Respuesta: 409 con las claves que ya existen. Queda en la auditoría con código 409."
+          },
+          "response": [
+            {
+              "name": "Respuesta",
+              "originalRequest": {
+                "method": "POST",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/api/commerce/files",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "commerce",
+                    "files"
+                  ]
+                }
+              },
+              "status": "Conflict",
+              "code": 409,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/problem+json"
+                }
+              ],
+              "body": "{\n  \"title\": \"Registros existentes\",\n  \"status\": 409,\n  \"detail\": \"Hay registros que ya existen en el sistema (fecha|código): 2024-03-15|1001, 2024-03-15|1002\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "1.5 Archivo vacío",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 400', function () { pm.response.to.have.status(400); });",
+                  "pm.test('Mensaje claro', function () { pm.expect(pm.response.json().detail).to.eql('El archivo está vacío'); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "file",
+                  "type": "file",
+                  "src": [],
+                  "description": "Seleccione commerce_17032024.csv de backend/database/samples/empty/"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/commerce/files",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "commerce",
+                "files"
+              ]
+            },
+            "description": "Archivo de 0 bytes."
+          },
+          "response": [
+            {
+              "name": "Respuesta",
+              "originalRequest": {
+                "method": "POST",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/api/commerce/files",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "commerce",
+                    "files"
+                  ]
+                }
+              },
+              "status": "Bad Request",
+              "code": 400,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/problem+json"
+                }
+              ],
+              "body": "{\n  \"title\": \"Archivo inválido\",\n  \"status\": 400,\n  \"detail\": \"El archivo está vacío\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "1.6 Falta una columna",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 400', function () { pm.response.to.have.status(400); });",
+                  "pm.test('Indica la columna', function () { pm.expect(pm.response.json().detail).to.include('pc_numdoc'); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "file",
+                  "type": "file",
+                  "src": [],
+                  "description": "Seleccione commerce_18032024.csv de backend/database/samples/missing-column/"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/commerce/files",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "commerce",
+                "files"
+              ]
+            },
+            "description": "Falta la columna pc_numdoc."
+          },
+          "response": [
+            {
+              "name": "Respuesta",
+              "originalRequest": {
+                "method": "POST",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/api/commerce/files",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "commerce",
+                    "files"
+                  ]
+                }
+              },
+              "status": "Bad Request",
+              "code": 400,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/problem+json"
+                }
+              ],
+              "body": "{\n  \"title\": \"Archivo inválido\",\n  \"status\": 400,\n  \"detail\": \"El encabezado no tiene la estructura esperada. Faltan columnas: pc_numdoc.\",\n  \"errors\": [\n    {\n      \"row\": null,\n      \"column\": \"pc_numdoc\",\n      \"message\": \"Columna faltante\"\n    }\n  ]\n}"
+            }
+          ]
+        },
+        {
+          "name": "1.7 Fecha imposible en una fila",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 400', function () { pm.response.to.have.status(400); });",
+                  "pm.test('Indica la fila 7', function () { pm.expect(pm.response.json().errors[0].row).to.eql(7); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "file",
+                  "type": "file",
+                  "src": [],
+                  "description": "Seleccione commerce_19032024.csv de backend/database/samples/invalid-date/"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/commerce/files",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "commerce",
+                "files"
+              ]
+            },
+            "description": "La fila 7 trae 31/02/2024."
+          },
+          "response": [
+            {
+              "name": "Respuesta",
+              "originalRequest": {
+                "method": "POST",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/api/commerce/files",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "commerce",
+                    "files"
+                  ]
+                }
+              },
+              "status": "Bad Request",
+              "code": 400,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/problem+json"
+                }
+              ],
+              "body": "{\n  \"title\": \"Archivo inválido\",\n  \"status\": 400,\n  \"detail\": \"El archivo tiene filas con errores de formato.\",\n  \"errors\": [\n    {\n      \"row\": 7,\n      \"column\": \"pc_processdate\",\n      \"message\": \"Fecha inválida: '31/02/2024'\"\n    }\n  ]\n}"
+            }
+          ]
+        },
+        {
+          "name": "1.8 Clave repetida dentro del archivo",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 400', function () { pm.response.to.have.status(400); });",
+                  "pm.test('Indica las filas 3 y 8', function () { pm.expect(pm.response.json().errors.map(e => e.row)).to.eql([3, 8]); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "file",
+                  "type": "file",
+                  "src": [],
+                  "description": "Seleccione commerce_20032024.csv de backend/database/samples/duplicate-key/"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/commerce/files",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "commerce",
+                "files"
+              ]
+            },
+            "description": "El código 1003 aparece en las filas 3 y 8."
+          },
+          "response": []
+        },
+        {
+          "name": "1.9 Textos con SQL y HTML malicioso",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 201', function () { pm.response.to.have.status(201); });",
+                  "pm.test('Cargó 5 registros', function () { pm.expect(pm.response.json().insertedCount).to.eql(5); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "file",
+                  "type": "file",
+                  "src": [],
+                  "description": "Seleccione commerce_22032024.csv de backend/database/samples/injection-attempt/"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/commerce/files",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "commerce",
+                "files"
+              ]
+            },
+            "description": "Los textos peligrosos se guardan como texto. Las tablas no se alteran. Al procesar la fecha 2024-03-22, 1 registro va a cuarentena."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "2. Proceso por fecha",
+      "description": "POST /api/commerce/process",
+      "item": [
+        {
+          "name": "2.1 Procesar 2024-03-15",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 200', function () { pm.response.to.have.status(200); });",
+                  "pm.test('Envió 5 a cuarentena', function () { pm.expect(pm.response.json().quarantinedCount).to.eql(5); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{ \"processDate\": \"2024-03-15\" }",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/commerce/process",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "commerce",
+                "process"
+              ]
+            },
+            "description": "Revisa el nombre y el número de los registros de esa fecha y envía a cuarentena los que fallan (5 con el archivo base)."
+          },
+          "response": [
+            {
+              "name": "Respuesta",
+              "originalRequest": {
+                "method": "POST",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/api/commerce/process",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "commerce",
+                    "process"
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"processDate\": \"2024-03-15\",\n  \"quarantinedCount\": 5\n}"
+            }
+          ]
+        },
+        {
+          "name": "2.2 Procesar la misma fecha otra vez",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 200', function () { pm.response.to.have.status(200); });",
+                  "pm.test('No envió nada nuevo', function () { pm.expect(pm.response.json().quarantinedCount).to.eql(0); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{ \"processDate\": \"2024-03-15\" }",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/commerce/process",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "commerce",
+                "process"
+              ]
+            },
+            "description": "Es seguro repetirlo: no hay más registros por apartar."
+          },
+          "response": []
+        },
+        {
+          "name": "2.3 Formato de fecha incorrecto",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 400', function () { pm.response.to.have.status(400); });",
+                  "pm.test('Mensaje claro', function () { pm.expect(pm.response.json().detail).to.include('yyyy-MM-dd'); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{ \"processDate\": \"15/03/2024\" }",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/commerce/process",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "commerce",
+                "process"
+              ]
+            },
+            "description": "Solo se acepta yyyy-MM-dd."
+          },
+          "response": [
+            {
+              "name": "Respuesta",
+              "originalRequest": {
+                "method": "POST",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/api/commerce/process",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "commerce",
+                    "process"
+                  ]
+                }
+              },
+              "status": "Bad Request",
+              "code": 400,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/problem+json"
+                }
+              ],
+              "body": "{\n  \"title\": \"Solicitud inválida\",\n  \"status\": 400,\n  \"detail\": \"La fecha de proceso debe tener el formato yyyy-MM-dd y ser una fecha real.\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "2.4 Sin fecha",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 400', function () { pm.response.to.have.status(400); });",
+                  "pm.test('Mensaje claro', function () { pm.expect(pm.response.json().detail).to.eql('La fecha de proceso es obligatoria.'); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/commerce/process",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "commerce",
+                "process"
+              ]
+            },
+            "description": "La fecha es obligatoria."
+          },
+          "response": []
+        },
+        {
+          "name": "2.5 Fecha sin registros",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 200', function () { pm.response.to.have.status(200); });",
+                  "pm.test('Cero', function () { pm.expect(pm.response.json().quarantinedCount).to.eql(0); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{ \"processDate\": \"2030-01-01\" }",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/commerce/process",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "commerce",
+                "process"
+              ]
+            },
+            "description": "Una fecha sin datos no es un error."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "3. Consultas",
+      "description": "GET /api/commerce y GET /api/commerce/quarantine",
+      "item": [
+        {
+          "name": "3.1 Registros de una fecha",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 200', function () { pm.response.to.have.status(200); });",
+                  "pm.test('Es una lista', function () { pm.expect(pm.response.json()).to.be.an('array'); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/commerce?processDate=2024-03-15",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "commerce"
+              ],
+              "query": [
+                {
+                  "key": "processDate",
+                  "value": "2024-03-15"
+                }
+              ]
+            },
+            "description": "Lo que hay en la tabla de registros para la fecha: todo lo cargado antes de procesar (10 con el archivo base) y solo los correctos después (5)."
+          },
+          "response": []
+        },
+        {
+          "name": "3.2 Todos los registros",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 200', function () { pm.response.to.have.status(200); });",
+                  "pm.test('Es una lista', function () { pm.expect(pm.response.json()).to.be.an('array'); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/commerce",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "commerce"
+              ]
+            },
+            "description": "Sin filtro: todas las fechas."
+          },
+          "response": []
+        },
+        {
+          "name": "3.3 Fecha con formato incorrecto",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 400', function () { pm.response.to.have.status(400); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/commerce?processDate=15/03/2024",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "commerce"
+              ],
+              "query": [
+                {
+                  "key": "processDate",
+                  "value": "15/03/2024"
+                }
+              ]
+            },
+            "description": "El filtro exige yyyy-MM-dd."
+          },
+          "response": []
+        },
+        {
+          "name": "3.4 Cuarentena de una fecha",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 200', function () { pm.response.to.have.status(200); });",
+                  "pm.test('Cada registro tiene motivo', function () { pm.response.json().forEach(r => pm.expect(r.motivo).to.be.a('string').and.not.empty); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/commerce/quarantine?processDate=2024-03-15",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "commerce",
+                "quarantine"
+              ],
+              "query": [
+                {
+                  "key": "processDate",
+                  "value": "2024-03-15"
+                }
+              ]
+            },
+            "description": "Registros apartados al procesar, con su motivo."
+          },
+          "response": []
+        },
+        {
+          "name": "3.5 Toda la cuarentena",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 200', function () { pm.response.to.have.status(200); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/commerce/quarantine",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "commerce",
+                "quarantine"
+              ]
+            },
+            "description": "Sin filtro."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "4. Estado del servicio",
+      "item": [
+        {
+          "name": "4.1 Health",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 200', function () { pm.response.to.have.status(200); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/health",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "health"
+              ]
+            },
+            "description": "Responde Healthy cuando el servicio está en marcha. No necesita sesión.",
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "response": []
+        }
+      ]
+    }
+  ]
+}

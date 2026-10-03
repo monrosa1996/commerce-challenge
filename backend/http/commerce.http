@@ -1,0 +1,203 @@
+### Manual tests for the API (VS Code extension: REST Client).
+### Start the API first: dotnet run --project backend/src/Commerce.Api
+### Run the requests from top to bottom on an empty database.
+### Every request except login and health needs the token that request 1 saves in @token.
+### Users for development: admin / Admin#2026 and analista / Analista#2026 (see SECURITY.md).
+### A load saves every record in the commerce table. Processing a date checks the name and the number
+### of each record and moves the ones that fail to quarantine. Login, logout, uploads and processing are
+### saved in the audit_log table.
+
+@host = http://localhost:5080
+
+### 0a. Without a session -> 401 "Debe iniciar sesión para continuar."
+GET {{host}}/api/commerce
+
+### 0b. Wrong password -> 401 "Usuario o contraseña incorrectos." (saved as LoginFailed)
+POST {{host}}/api/auth/login
+Content-Type: application/json
+
+{ "username": "admin", "password": "wrong" }
+
+### 1. Login -> 200 with accessToken (the token is kept in @token for the next requests)
+# @name login
+POST {{host}}/api/auth/login
+Content-Type: application/json
+
+{ "username": "admin", "password": "Admin#2026" }
+
+###
+@token = {{login.response.body.$.accessToken}}
+
+### 2. Base file -> 201, insertedCount 10
+POST {{host}}/api/commerce/files
+Authorization: Bearer {{token}}
+Content-Type: multipart/form-data; boundary=FormBoundary
+
+--FormBoundary
+Content-Disposition: form-data; name="file"; filename="commerce_15032024.csv"
+Content-Type: text/csv
+
+< ../database/samples/valid-comma/commerce_15032024.csv
+--FormBoundary--
+
+### 3. Same file again -> 409 "Hay registros que ya existen en el sistema (fecha|código): ..."
+POST {{host}}/api/commerce/files
+Authorization: Bearer {{token}}
+Content-Type: multipart/form-data; boundary=FormBoundary
+
+--FormBoundary
+Content-Disposition: form-data; name="file"; filename="commerce_15032024.csv"
+Content-Type: text/csv
+
+< ../database/samples/valid-comma/commerce_15032024.csv
+--FormBoundary--
+
+### 4. Records of the date before processing -> 200, 10 records
+GET {{host}}/api/commerce?processDate=2024-03-15
+Authorization: Bearer {{token}}
+
+### 5. Process 15/03 -> 200, quarantinedCount 5
+POST {{host}}/api/commerce/process
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{ "processDate": "2024-03-15" }
+
+### 6. Process the same date again -> 200, quarantinedCount 0
+POST {{host}}/api/commerce/process
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{ "processDate": "2024-03-15" }
+
+### 7. Records of the date after processing -> 200, 5 records (the correct ones)
+GET {{host}}/api/commerce?processDate=2024-03-15
+Authorization: Bearer {{token}}
+
+### 8. Quarantine of the date -> 200, 5 records with motivo (row 1010 has 3 reasons)
+GET {{host}}/api/commerce/quarantine?processDate=2024-03-15
+Authorization: Bearer {{token}}
+
+### 9. All quarantine
+GET {{host}}/api/commerce/quarantine
+Authorization: Bearer {{token}}
+
+### 10. Wrong date format -> 400
+POST {{host}}/api/commerce/process
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{ "processDate": "15/03/2024" }
+
+### 11. Missing date -> 400
+POST {{host}}/api/commerce/process
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{}
+
+### 12. Semicolon and dd/MM/yyyy dates -> 201, insertedCount 10
+POST {{host}}/api/commerce/files
+Authorization: Bearer {{token}}
+Content-Type: multipart/form-data; boundary=FormBoundary
+
+--FormBoundary
+Content-Disposition: form-data; name="file"; filename="commerce_16032024.csv"
+Content-Type: text/csv
+
+< ../database/samples/valid-semicolon/commerce_16032024.csv
+--FormBoundary--
+
+### 13. All records correct -> 201, insertedCount 10. Process 2024-03-21: quarantinedCount 0
+POST {{host}}/api/commerce/files
+Authorization: Bearer {{token}}
+Content-Type: multipart/form-data; boundary=FormBoundary
+
+--FormBoundary
+Content-Disposition: form-data; name="file"; filename="commerce_21032024.csv"
+Content-Type: text/csv
+
+< ../database/samples/all-correct/commerce_21032024.csv
+--FormBoundary--
+
+### 14. Text with SQL and HTML -> 201, insertedCount 5. Stored as plain text. Process 2024-03-22: quarantinedCount 1
+POST {{host}}/api/commerce/files
+Authorization: Bearer {{token}}
+Content-Type: multipart/form-data; boundary=FormBoundary
+
+--FormBoundary
+Content-Disposition: form-data; name="file"; filename="commerce_22032024.csv"
+Content-Type: text/csv
+
+< ../database/samples/injection-attempt/commerce_22032024.csv
+--FormBoundary--
+
+### 15. Empty file -> 400 "El archivo está vacío"
+POST {{host}}/api/commerce/files
+Authorization: Bearer {{token}}
+Content-Type: multipart/form-data; boundary=FormBoundary
+
+--FormBoundary
+Content-Disposition: form-data; name="file"; filename="commerce_17032024.csv"
+Content-Type: text/csv
+
+< ../database/samples/empty/commerce_17032024.csv
+--FormBoundary--
+
+### 16. Missing column -> 400, falta pc_numdoc
+POST {{host}}/api/commerce/files
+Authorization: Bearer {{token}}
+Content-Type: multipart/form-data; boundary=FormBoundary
+
+--FormBoundary
+Content-Disposition: form-data; name="file"; filename="commerce_18032024.csv"
+Content-Type: text/csv
+
+< ../database/samples/missing-column/commerce_18032024.csv
+--FormBoundary--
+
+### 17. Invalid date -> 400, row 7
+POST {{host}}/api/commerce/files
+Authorization: Bearer {{token}}
+Content-Type: multipart/form-data; boundary=FormBoundary
+
+--FormBoundary
+Content-Disposition: form-data; name="file"; filename="commerce_19032024.csv"
+Content-Type: text/csv
+
+< ../database/samples/invalid-date/commerce_19032024.csv
+--FormBoundary--
+
+### 18. Repeated key inside the file -> 400, rows 3 and 8
+POST {{host}}/api/commerce/files
+Authorization: Bearer {{token}}
+Content-Type: multipart/form-data; boundary=FormBoundary
+
+--FormBoundary
+Content-Disposition: form-data; name="file"; filename="commerce_20032024.csv"
+Content-Type: text/csv
+
+< ../database/samples/duplicate-key/commerce_20032024.csv
+--FormBoundary--
+
+### 19. All records in the commerce table
+GET {{host}}/api/commerce
+Authorization: Bearer {{token}}
+
+### 20. Wrong date format in the query -> 400
+GET {{host}}/api/commerce?processDate=15/03/2024
+Authorization: Bearer {{token}}
+
+### 21. Logout -> 204. The token stops working: the next request answers 401
+POST {{host}}/api/auth/logout
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{ "reason": "manual" }
+
+### 22. Same token after the logout -> 401 "Su sesión ha expirado o no es válida. Inicie sesión de nuevo."
+GET {{host}}/api/commerce
+Authorization: Bearer {{token}}
+
+### 23. Health check (open, no session needed)
+GET {{host}}/health

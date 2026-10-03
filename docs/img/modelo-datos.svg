@@ -1,0 +1,109 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 820" font-family="Arial, Helvetica, sans-serif" role="img" aria-label="Modelo de datos">
+  <defs>
+    <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#475467"/></marker>
+  </defs>
+  <rect width="1000" height="820" fill="#ffffff"/>
+  <text x="500" y="34" text-anchor="middle" font-size="20" font-weight="bold" fill="#101828">Modelo de datos (CommerceDb)</text>
+
+  <rect x="30" y="60" width="290" height="300" rx="8" fill="#ffffff" stroke="#12b76a" stroke-width="2"/>
+  <rect x="30" y="60" width="290" height="34" rx="8" fill="#12b76a"/>
+  <text x="175" y="83" text-anchor="middle" font-size="14" font-weight="bold" fill="#ffffff">commerce</text>
+  <g font-size="12" fill="#344054">
+    <text x="46" y="120">id</text><text x="304" y="120" text-anchor="end" fill="#667085">BIGINT · PK</text>
+    <text x="46" y="146">source_file</text><text x="304" y="146" text-anchor="end" fill="#667085">NVARCHAR(100)</text>
+    <text x="46" y="172" font-weight="bold">pc_processdate</text><text x="304" y="172" text-anchor="end" fill="#667085">DATE · clave</text>
+    <text x="46" y="198" font-weight="bold">pc_codcomred</text><text x="304" y="198" text-anchor="end" fill="#667085">NVARCHAR(20) · clave</text>
+    <text x="46" y="224">pc_nomcomred</text><text x="304" y="224" text-anchor="end" fill="#667085">NVARCHAR(150) · nulo</text>
+    <text x="46" y="250">pc_tipdoc</text><text x="304" y="250" text-anchor="end" fill="#667085">NVARCHAR(10) · nulo</text>
+    <text x="46" y="276">pc_numdoc</text><text x="304" y="276" text-anchor="end" fill="#667085">NVARCHAR(30) · nulo</text>
+    <text x="46" y="302">created_at</text><text x="304" y="302" text-anchor="end" fill="#667085">DATETIME2 · UTC</text>
+  </g>
+  <text x="46" y="336" font-size="11" fill="#067647">Índice único UX_commerce_key (fecha + código)</text>
+
+  <rect x="380" y="60" width="290" height="300" rx="8" fill="#ffffff" stroke="#f04438" stroke-width="2"/>
+  <rect x="380" y="60" width="290" height="34" rx="8" fill="#f04438"/>
+  <text x="525" y="83" text-anchor="middle" font-size="14" font-weight="bold" fill="#ffffff">commerce_quarantine</text>
+  <g font-size="12" fill="#344054">
+    <text x="396" y="120">id</text><text x="654" y="120" text-anchor="end" fill="#667085">BIGINT · PK</text>
+    <text x="396" y="146">source_file</text><text x="654" y="146" text-anchor="end" fill="#667085">NVARCHAR(100)</text>
+    <text x="396" y="172">pc_processdate</text><text x="654" y="172" text-anchor="end" fill="#667085">DATE</text>
+    <text x="396" y="198">pc_codcomred</text><text x="654" y="198" text-anchor="end" fill="#667085">NVARCHAR(20)</text>
+    <text x="396" y="224">pc_nomcomred</text><text x="654" y="224" text-anchor="end" fill="#667085">NVARCHAR(150) · nulo</text>
+    <text x="396" y="250">pc_tipdoc</text><text x="654" y="250" text-anchor="end" fill="#667085">NVARCHAR(10) · nulo</text>
+    <text x="396" y="276">pc_numdoc</text><text x="654" y="276" text-anchor="end" fill="#667085">NVARCHAR(30) · nulo</text>
+    <text x="396" y="302" font-weight="bold">motivo</text><text x="654" y="302" text-anchor="end" fill="#667085">NVARCHAR(500) · ALTER TABLE</text>
+    <text x="396" y="328">quarantined_at</text><text x="654" y="328" text-anchor="end" fill="#667085">DATETIME2 · UTC</text>
+  </g>
+
+  <path d="M320 210 H380" stroke="#475467" stroke-width="1.5" marker-end="url(#a)"/>
+  <text x="350" y="198" text-anchor="middle" font-size="10" fill="#475467">procesar</text>
+  <text x="350" y="236" text-anchor="middle" font-size="10" fill="#475467">fecha</text>
+
+  <rect x="30" y="410" width="290" height="230" rx="8" fill="#ffffff" stroke="#7a5af8" stroke-width="2"/>
+  <rect x="30" y="410" width="290" height="34" rx="8" fill="#7a5af8"/>
+  <text x="175" y="433" text-anchor="middle" font-size="14" font-weight="bold" fill="#ffffff">app_user</text>
+  <g font-size="12" fill="#344054">
+    <text x="46" y="470">id</text><text x="304" y="470" text-anchor="end" fill="#667085">INT · PK</text>
+    <text x="46" y="496" font-weight="bold">username</text><text x="304" y="496" text-anchor="end" fill="#667085">NVARCHAR(50) · único</text>
+    <text x="46" y="522">display_name</text><text x="304" y="522" text-anchor="end" fill="#667085">NVARCHAR(100)</text>
+    <text x="46" y="548">password_hash</text><text x="304" y="548" text-anchor="end" fill="#667085">PBKDF2-SHA256</text>
+    <text x="46" y="574">is_active</text><text x="304" y="574" text-anchor="end" fill="#667085">BIT</text>
+    <text x="46" y="600">created_at</text><text x="304" y="600" text-anchor="end" fill="#667085">DATETIME2 · UTC</text>
+  </g>
+  <text x="46" y="628" font-size="11" fill="#5925dc">La contraseña nunca se guarda</text>
+
+  <rect x="380" y="410" width="290" height="360" rx="8" fill="#ffffff" stroke="#f79009" stroke-width="2"/>
+  <rect x="380" y="410" width="290" height="34" rx="8" fill="#f79009"/>
+  <text x="525" y="433" text-anchor="middle" font-size="14" font-weight="bold" fill="#ffffff">audit_log</text>
+  <g font-size="12" fill="#344054">
+    <text x="396" y="470">id</text><text x="654" y="470" text-anchor="end" fill="#667085">BIGINT · PK</text>
+    <text x="396" y="496">occurred_at</text><text x="654" y="496" text-anchor="end" fill="#667085">DATETIME2(3) · UTC</text>
+    <text x="396" y="522" font-weight="bold">user_id</text><text x="654" y="522" text-anchor="end" fill="#667085">INT · FK app_user · nulo</text>
+    <text x="396" y="548">username</text><text x="654" y="548" text-anchor="end" fill="#667085">NVARCHAR(50)</text>
+    <text x="396" y="574" font-weight="bold">action</text><text x="654" y="574" text-anchor="end" fill="#667085">NVARCHAR(20) · CHECK</text>
+    <text x="396" y="600">status_code</text><text x="654" y="600" text-anchor="end" fill="#667085">INT</text>
+    <text x="396" y="626">ip_address</text><text x="654" y="626" text-anchor="end" fill="#667085">NVARCHAR(45) · nulo</text>
+    <text x="396" y="652" font-weight="bold">request_payload</text><text x="654" y="652" text-anchor="end" fill="#667085">NVARCHAR(MAX) · JSON</text>
+    <text x="396" y="678" font-weight="bold">response_payload</text><text x="654" y="678" text-anchor="end" fill="#667085">NVARCHAR(MAX) · JSON</text>
+  </g>
+  <text x="396" y="702" font-size="11" fill="#b54708">request = lo que entró · response = lo que salió</text>
+  <text x="396" y="718" font-size="11" fill="#b54708">Índices: por fecha y por usuario + fecha</text>
+  <text x="396" y="734" font-size="11" fill="#b54708">Sin contraseñas, tokens ni contenido del archivo</text>
+
+  <path d="M320 520 H380" stroke="#475467" stroke-width="1.5" marker-end="url(#a)"/>
+  <text x="350" y="508" text-anchor="middle" font-size="10" fill="#475467">user_id</text>
+
+  <rect x="720" y="60" width="255" height="470" rx="8" fill="#f9fafb" stroke="#98a2b3"/>
+  <text x="847" y="86" text-anchor="middle" font-size="14" font-weight="bold" fill="#101828">Procedimientos y reglas</text>
+  <g font-size="11" fill="#344054">
+    <text x="736" y="116" font-weight="bold">dbo.CommerceTableType</text>
+    <text x="736" y="132" fill="#667085">tipo de tabla para cargar todo de una vez</text>
+    <text x="736" y="162" font-weight="bold">sp_create_commerce</text>
+    <text x="736" y="178" fill="#667085">guarda el archivo; 50001 si ya existe</text>
+    <text x="736" y="208" font-weight="bold">fn_commerce_validation</text>
+    <text x="736" y="224" fill="#667085">regla de negocio, devuelve el motivo</text>
+    <text x="736" y="254" font-weight="bold">sp_process_commerce</text>
+    <text x="736" y="270" fill="#667085">mueve los registros con error</text>
+    <text x="736" y="300" font-weight="bold">sp_list_commerce</text>
+    <text x="736" y="316" fill="#667085">registros cargados, filtro por fecha</text>
+    <text x="736" y="346" font-weight="bold">sp_list_commerce_quarantine</text>
+    <text x="736" y="362" fill="#667085">registros apartados con su motivo</text>
+    <text x="736" y="392" font-weight="bold">sp_auth_get_user</text>
+    <text x="736" y="408" fill="#667085">usuario para comprobar el login</text>
+    <text x="736" y="438" font-weight="bold">sp_audit_add</text>
+    <text x="736" y="454" fill="#667085">guarda una entrada de auditoría</text>
+  </g>
+
+  <rect x="720" y="550" width="255" height="150" rx="8" fill="#fffaeb" stroke="#f79009"/>
+  <text x="847" y="576" text-anchor="middle" font-size="14" font-weight="bold" fill="#b54708">Acciones auditadas</text>
+  <g font-size="12" fill="#344054">
+    <text x="736" y="604"><tspan font-weight="bold">Login</tspan> · ingreso al sistema</text>
+    <text x="736" y="624"><tspan font-weight="bold">LoginFailed</tspan> · ingreso rechazado</text>
+    <text x="736" y="644"><tspan font-weight="bold">Logout</tspan> · salida del sistema</text>
+    <text x="736" y="664"><tspan font-weight="bold">Upload</tspan> · carga de archivo</text>
+    <text x="736" y="684"><tspan font-weight="bold">Process</tspan> · procesado de fecha</text>
+  </g>
+
+  <text x="500" y="795" text-anchor="middle" font-size="12" fill="#475467">La clave de negocio es la fecha de proceso más el código del comercio. Los datos se guardan tal como llegan.</text>
+  <text x="500" y="812" text-anchor="middle" font-size="12" fill="#475467">La aplicación usa el usuario commerce_app, que solo puede ejecutar procedimientos.</text>
+</svg>

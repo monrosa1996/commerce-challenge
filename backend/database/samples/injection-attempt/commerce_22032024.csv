@@ -1,0 +1,6 @@
+pc_processdate,pc_codcomred,pc_nomcomred,pc_tipdoc,pc_numdoc
+2024-03-22,3001,"Robert'); DROP TABLE dbo.commerce;--",CED,0911111111
+2024-03-22,3002,"' OR 1=1; DELETE FROM dbo.commerce_quarantine;--",RUC,0922222222001
+2024-03-22,3003,<script>alert('xss')</script>,CED,0933333333
+2024-03-22,3004,Tienda Normal,CED,0944';DROP TABLE x;--
+2024-03-22,3005,"=HYPERLINK(""http://example.com"",""clic"")",RUC,0955555555001
